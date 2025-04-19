@@ -1,44 +1,29 @@
+// Node.js Core Modules
+import path from 'node:path';
+
 // External Dependencies
+import { config } from 'dotenv';
 import { z } from 'zod';
 
+// Constants
+import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
+
+// Utilities
+import log from '#utils/observability/logger';
+
 // Type Imports
-import type { ReadonlyDeep } from '#types/functional/types';
+import type { EnvKeys } from '#types/env';
 
-// --------- ENV CONSTANTS ---------
-const MIN_API_KEY_LENGTH = 10;
-const MIN_JWT_SECRET_LENGTH = 32;
-const MIN_RATE_LIMIT_WINDOW_MS = 900000;
+/* eslint-disable no-process-env */
+/* eslint-disable no-restricted-globals */
+/* eslint-disable unicorn/no-process-exit */
 
-// --------- ENV TYPES ---------
-type EnvKeys = Readonly<{
-  readonly nodeEnv: string;
-  readonly port: number;
-  readonly apiUrl: string;
-  readonly isDevelopment: boolean;
-  readonly isProduction: boolean;
-  readonly isTest: boolean;
-  readonly corsOrigin: string;
-  readonly db: Readonly<{
-    readonly url: string;
-  }>;
-  readonly jwt: Readonly<{
-    readonly secret: string;
-    readonly expiresIn: string;
-    readonly refreshSecret: string;
-    readonly refreshExpiresIn: string;
-  }>;
-  readonly logging: Readonly<{
-    readonly level: 'debug' | 'error' | 'http' | 'info' | 'warn';
-    readonly format: 'combined' | 'common' | 'dev' | 'short' | 'tiny';
-  }>;
-  readonly rateLimit: Readonly<{
-    readonly windowMs: number;
-    readonly max: number;
-  }>;
-}>;
+// Initialize dotenv configuration
+config({
+  path: path.resolve(process.cwd(), '.env'),
+});
 
 // --------- ENV PROCESSING ---------
-// eslint-disable-next-line no-restricted-globals, no-process-env
 const rawEnvironment = process.env;
 const environmentVariables = { ...rawEnvironment };
 
@@ -59,54 +44,26 @@ export const parseIntEnv = (value: string | undefined, defaultValue: number): nu
 
 /**
  * Schema definition for environment variables using Zod.
- * This schema validates and transforms environment variables to ensure
- * they meet the required formats and constraints for the application.
+ * This schema validates and provides default values for various
+ * environment variables required by the application.
  *
  * Properties:
- * - `NODE_ENV`: Specifies the environment in which the application is running.
- *   Must be one of 'development', 'test', or 'production'. Defaults to 'development'.
- *
- * - `PORT`: The port number on which the application will run.
- *   Transformed from a string to a number. Defaults to 3000.
- *
- * - `DATABASE_URL`: The connection string for the application's database.
- *   Must be a valid string.
- *
- * - `API_KEY`: The API key used for external integrations.
- *   Must be a non-empty string with a minimum length defined by `port`.
- *
- * - `JWT_SECRET`: The secret key used for signing JSON Web Tokens (JWT).
- *   Must be a non-empty string with a minimum length defined by `jwtSecret`.
- *
- * - `REDIS_URL`: The connection string for the Redis instance.
- *   Optional; if provided, must be a valid string.
- *
- * - `LOG_LEVEL`: The logging level for the application.
- *   Must be one of 'debug', 'info', 'warn', or 'error'. Defaults to 'info'.
- *
- * - `JWT_EXPIRES_IN`: The expiration time for JSON Web Tokens.
- *   Must be a valid string. Defaults to '7d'.
- *
- * - `REFRESH_TOKEN_SECRET`: The secret key used for signing refresh tokens.
- *   Must be a valid string.
- *
- * - `REFRESH_TOKEN_EXPIRES_IN`: The expiration time for refresh tokens.
- *   Must be a valid string. Defaults to '30d'.
- *
- * - `API_URL`: The base URL for the application's API.
- *   Must be a valid string. Defaults to 'http://localhost:3000'.
- *
- * - `CORS_ORIGIN`: The allowed origin(s) for Cross-Origin Resource Sharing (CORS).
- *   Must be a valid string. Defaults to '*'.
- *
- * - `LOG_FORMAT`: The format for application logs.
- *   Must be one of 'combined', 'common', 'dev', 'short', or 'tiny'. Defaults to 'dev'.
- *
- * - `RATE_LIMIT_WINDOW_MS`: The time window in milliseconds for rate limiting.
- *   Transformed from a string to a number using `parseIntEnv`. Defaults to 900000 (15 minutes).
- *
- * - `RATE_LIMIT_MAX`: The maximum number of requests allowed within the rate limit window.
- *   Transformed from a string to a number using `parseIntEnv`. Defaults to 100.
+ * - `NODE_ENV`: Specifies the environment mode. Can be 'development', 'test', or 'production'. Defaults to 'development'.
+ * - `PORT`: The port number on which the application will run. Defaults to 3000.
+ * - `DATABASE_URL`: The connection string for the database. This is required.
+ * - `API_KEY`: The API key for external services. Must meet the minimum length defined by `NUMERIC_CONSTANTS.MIN_API_KEY_LENGTH`.
+ * - `JWT_SECRET`: The secret key for signing JSON Web Tokens (JWT). Must meet the minimum length defined by `NUMERIC_CONSTANTS.MIN_JWT_SECRET_LENGTH`.
+ * - `REDIS_URL`: The URL for the Redis server. Defaults to 'redis://localhost:6379'.
+ * - `LOG_LEVEL`: The logging level for the application. Can be 'debug', 'info', 'warn', or 'error'. Defaults to 'info'.
+ * - `JWT_EXPIRES_IN`: The expiration time for JWT tokens. Defaults to '7d'.
+ * - `REFRESH_TOKEN_SECRET`: The secret key for signing refresh tokens. This is required.
+ * - `REFRESH_TOKEN_EXPIRES_IN`: The expiration time for refresh tokens. Defaults to '30d'.
+ * - `API_URL`: The base URL for the API. Defaults to 'http://localhost:3000'.
+ * - `CORS_ORIGIN`: The allowed origin(s) for Cross-Origin Resource Sharing (CORS). Defaults to '*'.
+ * - `LOG_FORMAT`: The format for logging. Can be 'combined', 'common', 'dev', 'short', or 'tiny'. Defaults to 'dev'.
+ * - `RATE_LIMIT_WINDOW_MS`: The time window in milliseconds for rate limiting. Transformed using `parseIntEnv` and defaults to 900000 (15 minutes).
+ * - `RATE_LIMIT_MAX`: The maximum number of requests allowed within the rate limit window. Transformed using `parseIntEnv` and defaults to 100.
+ * - `VERSION`: The version of the application. Defaults to '1.0.0'.
  */
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -115,9 +72,9 @@ const envSchema = z.object({
     .transform((val) => Number.parseInt(val, 10))
     .default('3000'),
   DATABASE_URL: z.string(),
-  API_KEY: z.string().min(MIN_API_KEY_LENGTH),
-  JWT_SECRET: z.string().min(MIN_JWT_SECRET_LENGTH),
-  REDIS_URL: z.string().optional(),
+  API_KEY: z.string().min(NUMERIC_CONSTANTS.MIN_API_KEY_LENGTH),
+  JWT_SECRET: z.string().min(NUMERIC_CONSTANTS.MIN_JWT_SECRET_LENGTH),
+  REDIS_URL: z.string().default('redis://localhost:6379'), // Default value for V8 optimization
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   REFRESH_TOKEN_SECRET: z.string(),
@@ -127,22 +84,24 @@ const envSchema = z.object({
   LOG_FORMAT: z.enum(['combined', 'common', 'dev', 'short', 'tiny']).default('dev'),
   RATE_LIMIT_WINDOW_MS: z
     .string()
-    .transform((val) => parseIntEnv(val, MIN_RATE_LIMIT_WINDOW_MS))
+    .transform((val) => parseIntEnv(val, NUMERIC_CONSTANTS.MIN_RATE_LIMIT_WINDOW_MS))
     .default('900000'),
   RATE_LIMIT_MAX: z
     .string()
-    .transform((val) => parseIntEnv(val, 100))
+    .transform((val) => parseIntEnv(val, NUMERIC_CONSTANTS.RATE_LIMIT_MAX))
     .default('100'),
+  VERSION: z.string().default('1.0.0'), // Default value for V8 hidden class stability
 });
 
 export type Env = z.infer<typeof envSchema>;
 
 /**
- * Validates the environment variables against a predefined schema.
+ * Validates the environment variables using a predefined schema.
  *
  * @returns {Env} The validated environment variables.
- * @throws {Error} Throws an error if the validation fails. If the error is a `ZodError`,
- * it provides detailed messages about the validation issues. Otherwise, it rethrows the original error.
+ * @throws {Error} Throws an error if validation fails. If the error is a `ZodError`,
+ * it provides detailed messages about the validation issues. Otherwise, it rethrows
+ * the original error.
  */
 const validateEnv = (): Env => {
   try {
@@ -150,7 +109,7 @@ const validateEnv = (): Env => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const messages = error.errors
-        .map((e: ReadonlyDeep<z.ZodIssue>) => {
+        .map((e: z.ZodIssue) => {
           const issue = e as z.ZodIssue;
           const pathStr = Array.isArray(issue.path) ? issue.path.join('.') : String(issue.path);
 
@@ -166,38 +125,29 @@ const validateEnv = (): Env => {
   }
 };
 
+// Cache for memoized environment config (O(1) access)
+let memoizedEnv: EnvKeys | null = null;
+
 /**
- * Creates a frozen environment configuration object based on validated environment variables.
- * This configuration includes application settings, database credentials, JWT settings, logging preferences,
- * and rate limiting options. The returned object ensures immutability for all nested properties.
+ * Creates and returns a memoized environment configuration object.
  *
- * @returns {EnvKeys} A frozen object containing the application's environment configuration.
+ * This function validates the environment variables, ensures their structure
+ * is optimized for V8 hidden class optimization, and freezes the resulting
+ * configuration object to prevent further modifications. The configuration
+ * includes details such as the application environment, server port, API URL,
+ * CORS settings, database connection, JWT settings, logging preferences, rate
+ * limiting options, and application version.
  *
- * @property {string} nodeEnv - The current Node.js environment (e.g., 'development', 'production', 'test').
- * @property {number} port - The port number the application will run on.
- * @property {string} apiUrl - The base URL for the application's API.
- * @property {boolean} isDevelopment - Indicates if the application is running in development mode.
- * @property {boolean} isProduction - Indicates if the application is running in production mode.
- * @property {boolean} isTest - Indicates if the application is running in test mode.
- * @property {string} corsOrigin - The allowed origin(s) for Cross-Origin Resource Sharing (CORS).
- * @property {object} db - Database configuration.
- * @property {string} db.url - The database connection URL.
- * @property {object} jwt - JSON Web Token (JWT) configuration.
- * @property {string} jwt.secret - The secret key used for signing JWTs.
- * @property {string} jwt.expiresIn - The expiration time for access tokens.
- * @property {string} jwt.refreshSecret - The secret key used for signing refresh tokens.
- * @property {string} jwt.refreshExpiresIn - The expiration time for refresh tokens.
- * @property {object} logging - Logging configuration.
- * @property {'debug' | 'error' | 'http' | 'info' | 'warn'} logging.level - The logging level.
- * @property {'combined' | 'common' | 'dev' | 'short' | 'tiny'} logging.format - The logging format.
- * @property {object} rateLimit - Rate limiting configuration.
- * @property {number} rateLimit.windowMs - The time window in milliseconds for rate limiting.
- * @property {number} rateLimit.max - The maximum number of requests allowed within the time window.
+ * @returns {EnvKeys} The memoized and validated environment configuration object.
  */
 const createEnvConfig = (): EnvKeys => {
+  // Return memoized config if available for O(1) access
+  if (memoizedEnv != null) return memoizedEnv;
+
   const validatedEnv = validateEnv();
 
-  return Object.freeze({
+  // Create monomorphic object structure for V8 hidden class optimization
+  memoizedEnv = Object.freeze({
     nodeEnv: validatedEnv.NODE_ENV,
     port: validatedEnv.PORT,
     apiUrl: validatedEnv.API_URL,
@@ -228,12 +178,36 @@ const createEnvConfig = (): EnvKeys => {
       windowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
       max: validatedEnv.RATE_LIMIT_MAX,
     }),
+    version: validatedEnv.VERSION,
   });
+
+  return memoizedEnv;
 };
+
+// Immediate validation at module load time for early failure
+// This provides fast feedback during development and prevents
+// silent failures in production
+try {
+  validateEnv();
+  // Log success only in development to avoid cluttering production logs
+  if (environmentVariables.NODE_ENV === 'development') {
+    log.info('✅ Environment variables validated successfully');
+  }
+} catch (error) {
+  log.error('❌ Environment validation failed:');
+  log.error(error instanceof Error ? error.message : String(error));
+
+  // Only exit in production to allow development with missing vars
+  if (environmentVariables.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
 
 /**
  * Represents the environment configuration for the application.
  * This configuration is created using the `createEnvConfig` function.
+ *
+ * O(1) access time for all environment values due to memoization.
  *
  * @constant
  */

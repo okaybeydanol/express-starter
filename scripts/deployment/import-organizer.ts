@@ -39,13 +39,13 @@ const importGroupConfig: readonly ImportGroup[] = [
     key: 'builtin',
     title: '// Node.js Core Modules',
     pattern:
-      /^(node:|fs|path|os|util|stream|crypto|http|https|events|buffer|querystring|url|zlib|assert|child_process|cluster|dgram|dns|domain|net|readline|repl|tls|tty|v8|vm|worker_threads)$/,
+      /^(node:|fs|path|os|util|stream|crypto|http|https|events|buffer|querystring|url|zlib|assert|child_process|cluster|dgram|dns|domain|net|readline|repl|tls|tty|v8|vm|worker_threads|node:os|node:path)$/,
   },
   {
     key: 'express',
     title: '// Express & Middleware',
     pattern:
-      /^(express|cors|helmet|body-parser|compression|cookie-parser|express-validator|express-session|multer|passport|morgan|connect-redis)$/,
+      /^(express|cors|helmet|body-parser|compression|cookie-parser|express-validator|express-session|multer|passport|morgan|connect-redis|express-rate-limit|hpp)$/,
   },
   {
     key: 'prisma',
@@ -76,7 +76,7 @@ const importGroupConfig: readonly ImportGroup[] = [
   {
     key: 'constant',
     title: '// Constants',
-    pattern: /^#(constant)(?:\/|$)/,
+    pattern: /^#(constants)(?:\/|$)/,
   },
   {
     key: 'features',
@@ -199,7 +199,7 @@ const cleanPreviousHeaders = (content: string): string => {
  * @param {string} importPath - The import path
  * @returns {string} - The import type
  */
-// O(1) lookup için importları önbellekleme
+
 const importTypeCache = new Map<string, string>();
 const determineImportType = (importPath: string): string => {
   // Önce önbellekte ara - O(1) erişim

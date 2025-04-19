@@ -1,4 +1,10 @@
 {
+  "signal": "SIGKILL",
+  "delay": 100,
+  "env": {
+    "NODE_ENV": "development",
+    "IS_NODEMON": "true"
+  },
   "watch": ["src", ".env", "prisma"],
   "ext": "js,ts,json,prisma",
   "ignore": ["src/logs/*", "src/**/*.{spec,test}.ts"],

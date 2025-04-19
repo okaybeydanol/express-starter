@@ -39,6 +39,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # TypeScript
 *.tsbuildinfo
 .tsbuildinfo
+.tsc-cache
 
 # IDE - VSCode
 .vscode/*
@@ -99,6 +100,9 @@ $RECYCLE.BIN/
 !.yarn/versions
 yarn.lock
 
+# pnpm
+pnpm-lock.yaml
+
 # Misc
 .eslintcache
 .stylelintcache
@@ -131,3 +135,26 @@ __snapshots__/
 
 # CI/CD
 .github/workflows/.cache/
+
+# Node.js diagnostics
+*.heapsnapshot
+*.cpuprofile
+*.memprofile
+report.*.json
+
+# Docker development
+docker-compose.override.yml
+
+# ENV tools
+.envrc
+.direnv
+
+# Local development helpers
+.nodemon-debug
+.vscode-test/
+
+# Serverless
+.serverless/
+
+# Prisma additional files
+.prisma/

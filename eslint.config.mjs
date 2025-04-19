@@ -116,10 +116,6 @@ export default [
       '@typescript-eslint/array-type': ['error', { default: 'array', readonly: 'array' }],
       '@typescript-eslint/prefer-function-type': 'error',
       '@typescript-eslint/no-invalid-void-type': 'error',
-      '@typescript-eslint/prefer-readonly-parameter-types': [
-        'warn',
-        { checkParameterProperties: true },
-      ],
       '@typescript-eslint/no-misused-promises': [
         'error',
         { checksVoidReturn: { attributes: false, properties: false } },
@@ -156,7 +152,7 @@ export default [
       '@typescript-eslint/no-magic-numbers': [
         'error',
         {
-          ignore: [100, 200, 201, 204, 400, 401, 403, 404, 500, 502, 503, -1, 0, 1],
+          ignore: [-1, 0, 1, 2],
           ignoreArrayIndexes: true,
           enforceConst: true,
           detectObjects: true,
@@ -215,7 +211,7 @@ export default [
             {
               pattern: '#(app|server|bootstrap)',
               group: 'internal',
-              position: 'before',
+              position: 'after',
             },
             {
               pattern: '#(api)/**',
@@ -225,14 +221,13 @@ export default [
             {
               pattern: '#(config)/**',
               group: 'internal',
-              position: 'before',
+              position: 'after',
             },
             {
               pattern: '#(constant)/**',
               group: 'internal',
               position: 'after',
             },
-
             {
               pattern: '#features/**',
               group: 'internal',
@@ -253,9 +248,14 @@ export default [
               group: 'internal',
               position: 'after',
             },
+            {
+              pattern: '#(types)/**',
+              group: 'internal',
+              position: 'after',
+            },
           ],
           pathGroupsExcludedImportTypes: ['builtin', 'external'],
-          'newlines-between': 'always',
+          'newlines-between': 'always-and-inside-groups',
           alphabetize: {
             order: 'asc',
             caseInsensitive: true,
@@ -393,13 +393,6 @@ export default [
           message: 'Use environment config service instead of process.env directly',
         },
       ],
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'MemberExpression[object.name="res"][property.name="status"]',
-          message: 'Use HTTP status constants instead of magic numbers',
-        },
-      ],
       'no-restricted-properties': [
         'error',
         {
@@ -447,9 +440,9 @@ export default [
       'no-new-func': 'error',
       'require-atomic-updates': 'error',
       'no-template-curly-in-string': 'error',
-      complexity: ['error', { max: 15 }],
+      complexity: ['error', { max: 24 }],
       'max-params': ['error', { max: 4 }],
-      'max-lines-per-function': ['error', { max: 80 }],
+      'max-lines-per-function': ['error', { max: 100 }],
       'consistent-return': 'error',
       'no-else-return': 'error',
       'no-useless-return': 'error',

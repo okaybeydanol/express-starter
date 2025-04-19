@@ -36,6 +36,7 @@
     "paths": {
       "#api/*": ["api/*"],
       "#config/*": ["config/*"],
+      "#constants/*": ["constants/*"],
       "#features/*": ["features/*"],
       "#infrastructure/*": ["infrastructure/*"],
       "#shared/*": ["shared/*"],
