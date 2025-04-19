@@ -1,10 +1,13 @@
 // Node.js Core Modules
 import { resolve } from 'path';
+import os from 'os'; // Statik import kullan
 
 // External Dependencies
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 const tsconfig = require('./tsconfig.json');
+
 const pathAliases = Object.entries(tsconfig.compilerOptions.paths || {}).reduce(
   (aliases, [alias, pathArray]) => {
     if (Array.isArray(pathArray) && pathArray.length > 0) {
@@ -17,7 +20,10 @@ const pathAliases = Object.entries(tsconfig.compilerOptions.paths || {}).reduce(
   {} as Record<string, string>
 );
 
+const MAX_THREADS = Math.max(1, Math.floor(os.cpus().length * 0.75));
+
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   resolve: {
     alias: pathAliases,
     // ESM preferred resolution strategy
@@ -28,15 +34,20 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./tests/_config/setup.ts'],
+    mockReset: true,
+    clearMocks: true,
+    restoreMocks: true,
+    resolveSnapshotPath: (testPath, snapExtension) =>
+      testPath.replace(/\.test\.([tj]s)$/, `${snapExtension}.$1`),
     // Enable test isolation
     isolate: true,
     // Thread pool creation strategy
     pool: 'threads',
     poolOptions: {
       threads: {
-        // Run parallel tests on up to 75% of CPU cores
         minThreads: 1,
-        maxThreads: Math.max(1, Math.floor(require('os').cpus().length * 0.75)),
+        maxThreads: Math.max(1, Math.floor(os.cpus().length * 0.75)),
       },
     },
     coverage: {

@@ -5,8 +5,10 @@ import rateLimit from 'express-rate-limit';
 import { env } from '#config/env.js';
 
 // Constants
-import { HTTP_STATUS_CODE } from '#constants/http-status-codes.js';
 import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
+
+// Shared Modules
+import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes';
 
 // Utilities
 import log from '#utils/observability/logger.js';

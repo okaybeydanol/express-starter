@@ -1,6 +1,9 @@
 // Application Core
 import { bootstrap } from '#bootstrap';
 
+// Features
+import getAllUsersRoutes from '#features/users/routes/get-all-users.routes';
+
 // Utilities
 import log from '#utils/observability/logger.js';
 
@@ -24,7 +27,7 @@ const main = async (): Promise<void> => {
   try {
     // Application configuration with routes
     const appConfig: AppConfig = {
-      routes: [],
+      routes: [getAllUsersRoutes],
     };
 
     // Bootstrap application with config

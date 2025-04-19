@@ -39,7 +39,7 @@ const importGroupConfig: readonly ImportGroup[] = [
     key: 'builtin',
     title: '// Node.js Core Modules',
     pattern:
-      /^(node:|fs|path|os|util|stream|crypto|http|https|events|buffer|querystring|url|zlib|assert|child_process|cluster|dgram|dns|domain|net|readline|repl|tls|tty|v8|vm|worker_threads|node:os|node:path)$/,
+      /^(node:|fs|path|os|util|stream|crypto|http|https|events|buffer|querystring|url|zlib|assert|child_process|cluster|dgram|dns|domain|net|readline|repl|tls|tty|v8|vm|worker_threads|node:os|node:path|node:perf_hooks)$/,
   },
   {
     key: 'express',

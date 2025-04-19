@@ -12,10 +12,10 @@ import { env } from '#config/env.js';
 
 // Constants
 import { DEFAULT_APP_CONFIG } from '#constants/default-app-config.js';
-import { HTTP_STATUS_CODE } from '#constants/http-status-codes.js';
 import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
 
 // Shared Modules
+import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes';
 import { createErrorMiddleware } from '#shared/middleware/error.middleware.js';
 import { defaultRateLimiter } from '#shared/middleware/rate-limiter.middleware.js';
 
