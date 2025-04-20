@@ -21,11 +21,11 @@ import { getAllUsersController } from '../controllers/get-all-users.controller.j
  * - `route`: The configured Express router instance.
  */
 
-const usersRouter = Router();
+const getAllUsersRouter = Router();
 
-usersRouter.get('/', getAllUsersController.getAllUsers);
+getAllUsersRouter.get('/', getAllUsersController.getAllUsers);
 
 export default Object.freeze({
   path: '/api/users',
-  route: usersRouter,
+  route: getAllUsersRouter,
 });

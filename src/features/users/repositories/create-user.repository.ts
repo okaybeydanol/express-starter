@@ -2,7 +2,7 @@
 import { prisma } from '#config/client.js';
 
 // Parent Directory Imports
-import { newUserResponse } from '../transformers/create-user.transformer.js';
+import { createUserResponse } from '../transformers/create-user.transformer.js';
 
 // Type Imports
 import type { CreateUserParams, CreateUserResponse } from '../types/create-user.types.js';
@@ -40,7 +40,7 @@ export const createUserRepository = {
       },
     });
 
-    return newUserResponse(newUser);
+    return createUserResponse(newUser);
   },
 
   /**
