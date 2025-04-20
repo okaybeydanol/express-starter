@@ -1,11 +1,6 @@
-// Node.js Core Modules
-import { performance } from 'node:perf_hooks';
-
-// Configuration
-import { env } from '#config/env.js';
-
 // Shared Modules
 import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes.js';
+import createMetricsCollector from '#shared/utils/metrics-collector.js';
 
 // Utilities
 import { log } from '#utils/observability/logger.js';
@@ -14,9 +9,7 @@ import { log } from '#utils/observability/logger.js';
 import { getAllUsersService } from '../services/get-all-users.service.js';
 
 // Type Imports
-import type { TypedResponse } from '#shared/types/express';
-import type { UserResponse } from '../types/get-all-users.types.js';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 /**
  * Controller for handling the retrieval of all users.
@@ -29,7 +22,7 @@ import type { Request } from 'express';
  * - Performance metrics are captured using high-precision timestamps.
  * - Errors are logged with detailed context for debugging purposes.
  *
- * @param _req - The Express request object (unused in this controller).
+ * @param req - The Express request object (unused in this controller).
  * @param res - The Express response object used to send the response.
  *
  * @returns A promise that resolves when the response is sent.
@@ -56,69 +49,86 @@ export const getAllUsersController = {
   /**
    * Retrieves all users from the system
    *
-   * @param _req - Express request object (unused)
+   * @param req - Express request object (unused)
    * @param res - Express response object
    * @returns Promise<void> - Resolves when response is sent
    *
    * O(n) complexity where n is the number of users
    */
-  getAllUsers: async (
-    _req: Request,
-    res: TypedResponse<readonly UserResponse[]>
-  ): Promise<void> => {
-    // Use nullish coalescing for proper null/undefined check with O(1) complexity
-    const requestId = (_req.headers['x-request-id'] as string | undefined) ?? crypto.randomUUID();
-    const startTime = performance.now(); // O(1) high-precision timestamp for metrics
+  getAllUsers: async (req: Request, res: Response): Promise<void> => {
+    const requestId = (req.headers['x-request-id'] as string | undefined) ?? crypto.randomUUID();
+
+    // O(1) metrics collection for performance monitoring
+    const collector = createMetricsCollector();
+    const stopTimer = collector.startTimer();
 
     try {
       log.info('Fetching all users', {
         requestId,
         endpoint: 'GET /users',
-        controller: 'userController.getAllUsers',
+        controller: 'getAllUsersController.getAllUsers',
       });
 
-      // Service call with O(n) complexity
-      const users = await getAllUsersService.getAllUsers();
-      const executionTime = performance.now() - startTime; // Calculate execution time with O(1)
+      // O(n) service call with business logic
+      const result = await getAllUsersService.getAllUsers();
+
+      // O(1) timing completion
+      stopTimer();
+      const queryTime = collector.getMetric();
+
+      if (!result.success) {
+        log.error('Failed to fetch users', {
+          requestId,
+          error: result.error,
+          queryTime: collector.getMetric(),
+        });
+
+        // O(1) error response formatting
+        res.status(HTTP_STATUS_CODE.BAD_REQUEST).json(
+          Object.freeze({
+            success: false,
+            message: 'USERS_FETCH_FAILED',
+            error: result.error,
+            queryTime: queryTime,
+          })
+        );
+        return;
+      }
 
       log.info('Users fetched successfully', {
         requestId,
-        count: users.length,
-        executionTimeMs: Math.floor(executionTime), // Round to integer for cleaner logs
+        count: result.data.length,
+        queryTime: collector.getMetric(),
       });
 
-      // Successful response with O(1) status code lookup
-      res.status(HTTP_STATUS_CODE.OK).json({
-        success: true,
-        data: users,
-        count: users.length,
-      });
-    } catch (error) {
-      // Structured error logging with O(1) property access pattern
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      const executionTime = performance.now() - startTime; // Calculate execution time even for errors
+      // O(1) success response formatting
+      res.status(HTTP_STATUS_CODE.OK).json(
+        Object.freeze({
+          success: true,
+          message: 'USERS_FETCHED_SUCCESSFULLY',
+          data: result.data,
+          count: result.data.length,
+          queryTime: queryTime,
+        })
+      );
+    } catch {
+      // Stop timer even on unexpected errors
+      stopTimer();
 
       log.error('Failed to fetch users', {
         requestId,
-        endpoint: 'GET /users',
-        errorName: errorObj.name,
-        errorMessage: errorObj.message,
-        stackTrace: env.isProduction ? undefined : errorObj.stack,
-        // Additional context for debugging
-        timestamp: new Date().toISOString(),
-        nodeEnv: env.nodeEnv,
-        executionTimeMs: Math.floor(executionTime),
+        error: 'INTERNAL_SERVER_ERROR',
+        queryTime: collector.getMetric(),
       });
 
-      // Error response with O(1) status code lookup
-      res.status(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        data: [],
-        count: 0,
-        error: env.isProduction
-          ? 'Internal server error'
-          : `Failed to fetch users: ${errorObj.message}`,
-      });
+      // O(1) error handling with minimal information leakage
+      res.status(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR).json(
+        Object.freeze({
+          success: false,
+          message: 'INTERNAL_SERVER_ERROR',
+          error: 'An unexpected error occurred',
+        })
+      );
     }
   },
 };

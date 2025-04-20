@@ -1,5 +1,5 @@
 // Configuration
-import { prisma } from '#config/client';
+import { prisma } from '#config/client.js';
 
 // Parent Directory Imports
 import { getAllUsersResponse } from '../transformers/get-all-users.transformer.js';

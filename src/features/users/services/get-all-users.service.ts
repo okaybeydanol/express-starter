@@ -2,19 +2,53 @@
 import { getAllUsersRepository } from '../repositories/get-all-users.repository.js';
 
 // Type Imports
-import type { UserResponse } from '../types/get-all-users.types.js';
+import type { GetAllUsersResult } from '../types/get-all-users.types.js';
 
 /**
- * Service for retrieving all users.
+ * Service object for managing user-related operations.
  *
- * This service provides a method to fetch all users from the repository.
- * It returns a promise that resolves to a readonly array of user responses.
+ * @remarks
+ * This service provides a method to retrieve all users from the database
+ * asynchronously. It ensures proper error handling and returns a structured
+ * result indicating the success or failure of the operation.
+ *
+ * @method getAllUsers
+ * Retrieves all users from the database.
+ *
+ * @returns A promise that resolves to an object containing:
+ * - `success`: A boolean indicating whether the operation was successful.
+ * - `data`: An array of user objects if the operation is successful.
+ * - `error`: A string containing an error message if the operation fails.
  */
 export const getAllUsersService = {
   /**
-   * Retrieves all users from the repository.
+   * Service for retrieving all users from the database.
    *
-   * @returns A promise that resolves to a readonly array of user responses.
+   * @remarks
+   * This service provides a method to fetch all users from the database
+   * asynchronously. It ensures proper error handling and returns a structured
+   * result indicating the success or failure of the operation.
+   *
+   * @returns A promise that resolves to an object containing:
+   * - `success`: A boolean indicating whether the operation was successful.
+   * - `data`: An array of user objects if the operation is successful.
+   * - `error`: A string containing an error message if the operation fails.
    */
-  getAllUsers: async (): Promise<readonly UserResponse[]> => await getAllUsersRepository.findAll(),
+  getAllUsers: async (): Promise<GetAllUsersResult> => {
+    try {
+      // O(n) database operation to retrieve all users
+      const users = await getAllUsersRepository.findAll();
+
+      return {
+        success: true,
+        data: users,
+      };
+    } catch (error) {
+      // O(1) error handling with proper typing
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to retrieve users',
+      };
+    }
+  },
 };

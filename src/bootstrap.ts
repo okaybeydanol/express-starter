@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { createApp } from '#app';
 
 // Configuration
-import { initDatabase } from '#config/client';
+import { initDatabase } from '#config/client.js';
 import { env } from '#config/env.js';
 
 // Utilities
@@ -90,17 +90,21 @@ export const bootstrap = async (config: AppConfig): Promise<() => void> => {
 
     // O(1) server startup with minimal closure allocation
     await new Promise<void>((resolve) => {
-      server.listen(env.port, () => {
-        log.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`, {
-          metadata: {
-            service: 'express-api',
-            port: env.port,
-            environment: env.nodeEnv,
-            version: env.version,
-          },
+      server
+        .listen(env.port, () => {
+          log.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`, {
+            metadata: {
+              service: 'express-api',
+              port: env.port,
+              environment: env.nodeEnv,
+              version: env.version,
+            },
+          });
+          resolve();
+        })
+        .on('error', (error) => {
+          log.error(`Failed to start server: ${error.message}`);
         });
-        resolve();
-      });
     });
 
     // Register explicit cleanup function for test environments or programmatic shutdown

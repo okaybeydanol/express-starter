@@ -10,9 +10,15 @@ export interface ApiResponse<T> {
   readonly success: boolean;
   readonly data: T;
   readonly count?: number;
+  readonly queryTime?: number | undefined;
   readonly error?: string;
   readonly message?: string;
 }
+
+export type RequestMetrics = {
+  readonly queryTime?: number;
+  readonly [key: string]: number | undefined;
+};
 
 /**
  * Request type with strictly typed body
@@ -20,6 +26,8 @@ export interface ApiResponse<T> {
  */
 export interface TypedRequestBody<T> extends Request {
   readonly body: T;
+  // eslint-disable-next-line functional/prefer-readonly-type
+  metrics?: RequestMetrics;
 }
 
 /**

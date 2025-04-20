@@ -21,13 +21,11 @@ import { getAllUsersController } from '../controllers/get-all-users.controller.j
  * - `route`: The configured Express router instance.
  */
 
-// Router instance oluşturma
 const usersRouter = Router();
 
-// GET /users endpoint'i - tüm kullanıcıları listeler
 usersRouter.get('/', getAllUsersController.getAllUsers);
 
-export default {
+export default Object.freeze({
   path: '/api/users',
   route: usersRouter,
-};
+});
