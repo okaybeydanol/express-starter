@@ -2,10 +2,10 @@
 import { performance } from 'node:perf_hooks';
 
 // Configuration
-import { env } from '#config/env';
+import { env } from '#config/env.js';
 
 // Shared Modules
-import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes';
+import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes.js';
 
 // Utilities
 import { log } from '#utils/observability/logger.js';

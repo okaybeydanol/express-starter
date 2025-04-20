@@ -8,7 +8,7 @@ import { env } from '#config/env.js';
 import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
 
 // Shared Modules
-import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes';
+import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes.js';
 
 // Utilities
 import log from '#utils/observability/logger.js';

@@ -1,5 +1,5 @@
 // Shared Modules
-import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes';
+import { HTTP_STATUS_CODE } from '#shared/constants/http-status-codes.js';
 
 // Utilities
 import { sendResponse } from '#utils/response.js';
