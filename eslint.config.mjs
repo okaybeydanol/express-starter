@@ -229,16 +229,6 @@ export default [
               position: 'after',
             },
             {
-              pattern: '#features/**',
-              group: 'internal',
-              position: 'after',
-            },
-            {
-              pattern: '#(infrastructure)/**',
-              group: 'internal',
-              position: 'after',
-            },
-            {
               pattern: '#(shared|decorators|errors|interceptors|middleware|validators|models)/**',
               group: 'internal',
               position: 'after',
@@ -248,6 +238,17 @@ export default [
               group: 'internal',
               position: 'after',
             },
+            {
+              pattern: '#features/**',
+              group: 'internal',
+              position: 'after',
+            },
+            {
+              pattern: '#(infrastructure)/**',
+              group: 'internal',
+              position: 'after',
+            },
+
             {
               pattern: '#(types)/**',
               group: 'internal',

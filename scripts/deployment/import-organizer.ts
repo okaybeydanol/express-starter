@@ -39,7 +39,7 @@ const importGroupConfig: readonly ImportGroup[] = [
     key: 'builtin',
     title: '// Node.js Core Modules',
     pattern:
-      /^(node:|fs|path|os|util|stream|crypto|http|https|events|buffer|querystring|url|zlib|assert|child_process|cluster|dgram|dns|domain|net|readline|repl|tls|tty|v8|vm|worker_threads|node:os|node:path|node:perf_hooks)$/,
+      /^(node:|fs|path|os|util|stream|crypto|http|https|events|buffer|querystring|url|zlib|assert|child_process|cluster|dgram|dns|domain|net|readline|repl|tls|tty|v8|vm|worker_threads|node:os|node:path|node:perf_hooks|node:process)$/,
   },
   {
     key: 'express',
@@ -79,16 +79,6 @@ const importGroupConfig: readonly ImportGroup[] = [
     pattern: /^#(constants)(?:\/|$)/,
   },
   {
-    key: 'features',
-    title: '// Features',
-    pattern: /^#features(?:\/|$)/,
-  },
-  {
-    key: 'infrastructure',
-    title: '// Infrastructure & External Services',
-    pattern: /^#(infrastructure)(?:\/|$)/,
-  },
-  {
     key: 'shared',
     title: '// Shared Modules',
     pattern: /^#(shared|decorators|errors|interceptors|middleware|validators|models)(?:\/|$)/,
@@ -97,6 +87,16 @@ const importGroupConfig: readonly ImportGroup[] = [
     key: 'utils',
     title: '// Utilities',
     pattern: /^#(utils)(?:\/|$)/,
+  },
+  {
+    key: 'features',
+    title: '// Features',
+    pattern: /^#features(?:\/|$)/,
+  },
+  {
+    key: 'infrastructure',
+    title: '// Infrastructure & External Services',
+    pattern: /^#(infrastructure)(?:\/|$)/,
   },
   {
     key: 'parent',
@@ -343,7 +343,36 @@ const sortImports = (filePath: string): boolean => {
     importGroupConfig
       .filter((group) => group.key !== 'builtin')
       .forEach((group) => {
-        if (importGroups[group.key] && importGroups[group.key].length > 0) {
+        if (group.key === 'type-imports') {
+          importGroups[group.key].sort((a, b) => {
+            // Internal alias'lar (#shared gibi) en önce gelsin - O(1) check
+            const isInternalA = a.path.startsWith('#');
+            const isInternalB = b.path.startsWith('#');
+
+            if (isInternalA && !isInternalB) return -1;
+            if (!isInternalA && isInternalB) return 1;
+
+            // İkisi de internal ise alfabetik sırala
+            if (isInternalA && isInternalB) {
+              return a.sortValue.localeCompare(b.sortValue);
+            }
+
+            // Göreceli yollar (./, ../) ikinci sırada gelsin - O(1) check
+            const isRelativeA = a.path.startsWith('.');
+            const isRelativeB = b.path.startsWith('.');
+
+            if (isRelativeA && !isRelativeB) return -1;
+            if (!isRelativeA && isRelativeB) return 1;
+
+            // İkisi de göreceli ise alfabetik sırala
+            if (isRelativeA && isRelativeB) {
+              return a.sortValue.localeCompare(b.sortValue);
+            }
+
+            // External paketler (express gibi) en sonda gelsin, kendi içlerinde alfabetik sıralansın
+            return a.sortValue.localeCompare(b.sortValue);
+          });
+        } else {
           importGroups[group.key].sort((a, b) => a.sortValue.localeCompare(b.sortValue));
         }
       });

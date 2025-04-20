@@ -1,11 +1,11 @@
 // Application Core
 import { bootstrap } from '#bootstrap';
 
-// Features
-import getAllUsersRoutes from '#features/users/routes/get-all-users.routes';
-
 // Utilities
 import log from '#utils/observability/logger.js';
+
+// Features
+import getAllUsersRoutes from '#features/users/routes/get-all-users.routes';
 
 // Type Imports
 import type { AppConfig } from '#types/route-types.js';
