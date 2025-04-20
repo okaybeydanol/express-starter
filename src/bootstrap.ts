@@ -5,6 +5,7 @@ import { createServer } from 'node:http';
 import { createApp } from '#app';
 
 // Configuration
+import { initDatabase } from '#config/client';
 import { env } from '#config/env.js';
 
 // Utilities
@@ -44,6 +45,10 @@ import type { RequestListener } from 'node:http';
  */
 export const bootstrap = async (config: AppConfig): Promise<() => void> => {
   try {
+    // O(1) database initialization before app creation
+    // This ensures database is ready before handling any requests
+    await initDatabase();
+
     // O(1) app instantiation with immutable configuration
     const app: Express = createApp(config);
 

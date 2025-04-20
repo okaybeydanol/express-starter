@@ -1,13 +1,11 @@
-// Prisma & DB
-import { PrismaClient } from '@prisma/client';
+// Configuration
+import { prisma } from '#config/client';
 
 // Parent Directory Imports
 import { getAllUsersResponse } from '../transformers/get-all-users.transformer.js';
 
 // Type Imports
 import type { UserResponse } from '../types/get-all-users.types.js';
-
-const prisma = new PrismaClient();
 
 /**
  * Repository for retrieving all users from the database.

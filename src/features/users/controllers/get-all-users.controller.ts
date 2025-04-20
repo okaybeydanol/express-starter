@@ -14,8 +14,8 @@ import { log } from '#utils/observability/logger.js';
 import { getAllUsersService } from '../services/get-all-users.service.js';
 
 // Type Imports
-import type { UserResponse } from '../types/get-all-users.types.js';
 import type { TypedResponse } from '#shared/types/express';
+import type { UserResponse } from '../types/get-all-users.types.js';
 import type { Request } from 'express';
 
 /**
