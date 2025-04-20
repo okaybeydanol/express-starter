@@ -18,18 +18,3 @@ export type UserResponse = Readonly<{
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }>;
-
-/**
- * Represents the response structure for fetching all users from the API.
- *
- * @property success - Indicates whether the API request was successful.
- * @property data - An array of user data objects returned by the API.
- * @property count - The total number of users returned in the response.
- * @property error - An optional error message, present if the request was unsuccessful.
- */
-export type UsersApiResponse = Readonly<{
-  readonly success: boolean;
-  readonly data: readonly UserResponse[];
-  readonly count: number;
-  readonly error?: string;
-}>;

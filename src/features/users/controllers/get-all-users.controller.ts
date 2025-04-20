@@ -14,8 +14,9 @@ import { log } from '#utils/observability/logger.js';
 import { getAllUsersService } from '../services/get-all-users.service.js';
 
 // Type Imports
-import type { UsersApiResponse } from '../types/get-all-users.types.js';
-import type { Response, Request } from 'express';
+import type { UserResponse } from '../types/get-all-users.types.js';
+import type { TypedResponse } from '#shared/types/express';
+import type { Request } from 'express';
 
 /**
  * Controller for handling the retrieval of all users.
@@ -61,7 +62,10 @@ export const getAllUsersController = {
    *
    * O(n) complexity where n is the number of users
    */
-  getAllUsers: async (_req: Request, res: Response<UsersApiResponse>): Promise<void> => {
+  getAllUsers: async (
+    _req: Request,
+    res: TypedResponse<readonly UserResponse[]>
+  ): Promise<void> => {
     // Use nullish coalescing for proper null/undefined check with O(1) complexity
     const requestId = (_req.headers['x-request-id'] as string | undefined) ?? crypto.randomUUID();
     const startTime = performance.now(); // O(1) high-precision timestamp for metrics
