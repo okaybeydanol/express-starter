@@ -32,54 +32,86 @@ import { passwordSchema } from './password.schema.js';
  *   - The value is trimmed and can be null.
  */
 export const updateUserByIdSchema = z
-  .object({
-    id: z
-      .string({
-        required_error: 'User ID is required',
-        invalid_type_error: 'User ID must be a string',
-      })
-      .uuid({
-        message: 'Invalid UUID format for user ID',
+  .discriminatedUnion('role', [
+    // ADMIN role schema - O(1) branching için ayrı schema
+    z.object({
+      id: z
+        .string({
+          required_error: 'User ID is required',
+          invalid_type_error: 'User ID must be a string',
+        })
+        .uuid({
+          message: 'Invalid UUID format for user ID',
+        }),
+      role: z.literal('ADMIN'),
+      isActive: z.boolean({
+        required_error: 'Active status is required',
+        invalid_type_error: 'Active status must be a boolean',
       }),
-    currentPassword: z.string({
-      required_error: 'Current password is required',
-      invalid_type_error: 'Current password must be a string',
+      currentPassword: z.string().optional(),
+      newPassword: z.never().optional(),
+      newPasswordConfirm: z.never().optional(),
+      firstName: z.never().optional(),
+      lastName: z.never().optional(),
     }),
-    newPassword: passwordSchema.optional(),
-    newPasswordConfirm: z.string().optional(),
-    firstName: z
-      .string({
-        invalid_type_error: 'First name must be a string',
-      })
-      .min(2, {
-        message: 'First name must be at least 2 characters long',
-      })
-      .max(PASSWORD_SCHEMA.NAME_MAX_LENGTH, {
-        message: `First name cannot exceed ${PASSWORD_SCHEMA.NAME_MAX_LENGTH} characters`,
-      })
-      .trim()
-      .nullable()
-      .optional(),
-    lastName: z
-      .string({
-        invalid_type_error: 'Last name must be a string',
-      })
-      .min(2, {
-        message: 'Last name must be at least 2 characters long',
-      })
-      .max(PASSWORD_SCHEMA.NAME_MAX_LENGTH, {
-        message: `Last name cannot exceed ${PASSWORD_SCHEMA.NAME_MAX_LENGTH} characters`,
-      })
-      .trim()
-      .nullable()
-      .optional(),
-  })
+
+    z.object({
+      id: z
+        .string({
+          required_error: 'User ID is required',
+          invalid_type_error: 'User ID must be a string',
+        })
+        .uuid({
+          message: 'Invalid UUID format for user ID',
+        }),
+      role: z.literal('USER'),
+      currentPassword: z.string({
+        required_error: 'Current password is required for user updates',
+        invalid_type_error: 'Current password must be a string',
+      }),
+      newPassword: passwordSchema.optional(),
+      newPasswordConfirm: z.string().optional(),
+      firstName: z
+        .string({
+          invalid_type_error: 'First name must be a string',
+        })
+        .min(2, {
+          message: 'First name must be at least 2 characters long',
+        })
+        .max(PASSWORD_SCHEMA.NAME_MAX_LENGTH, {
+          message: `First name cannot exceed ${PASSWORD_SCHEMA.NAME_MAX_LENGTH} characters`,
+        })
+        .trim()
+        .nullable()
+        .optional(),
+      lastName: z
+        .string({
+          invalid_type_error: 'Last name must be a string',
+        })
+        .min(2, {
+          message: 'Last name must be at least 2 characters long',
+        })
+        .max(PASSWORD_SCHEMA.NAME_MAX_LENGTH, {
+          message: `Last name cannot exceed ${PASSWORD_SCHEMA.NAME_MAX_LENGTH} characters`,
+        })
+        .trim()
+        .nullable()
+        .optional(),
+      isActive: z
+        .never({
+          message:
+            'Active status cannot be updated by the user role. Only admin can update this field.',
+        })
+        .optional(),
+    }),
+  ])
   .refine(
     (data) => {
       // O(1) validation to ensure both newPassword and newPasswordConfirm are provided together
       if (
-        (data.newPassword != null && data.newPasswordConfirm == null) ||
-        (data.newPassword == null && data.newPasswordConfirm != null)
+        data.role === 'USER' &&
+        ((data.newPassword != null && data.newPasswordConfirm == null) ||
+          (data.newPassword == null && data.newPasswordConfirm != null))
       ) {
         return false;
       }

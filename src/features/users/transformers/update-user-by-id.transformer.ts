@@ -1,6 +1,6 @@
 // Type Imports
 import type { UpdateUserByIdResponse } from '../types/update-user-by-id.types.js';
-import type { User } from '@prisma/client';
+import type { Role, User } from '@prisma/client';
 
 /**
  * Transforms a `User` object into an `UpdateUserResponse` object.
@@ -14,11 +14,21 @@ import type { User } from '@prisma/client';
  *
  * O(1) complexity for simple property mapping
  */
-export const updateUserByIdResponse = (user: User): UpdateUserByIdResponse =>
+export const updateUserByIdResponse = (
+  user: Partial<User> & {
+    readonly id: string;
+    readonly email: string;
+    readonly isActive: boolean;
+    readonly role: Role;
+    readonly updatedAt: Date;
+  }
+): UpdateUserByIdResponse =>
   Object.freeze({
     id: user.id,
     email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
+    firstName: user.firstName ?? null,
+    lastName: user.lastName ?? null,
+    isActive: user.isActive,
+    role: user.role,
     updatedAt: user.updatedAt,
   });

@@ -30,10 +30,10 @@ import type { UpdateUserInput } from '../types/update-user-by-id.types.js';
 const updateUserByIdRouter = Router();
 
 updateUserByIdRouter.put(
-  '/:id',
-  // Optional middleware for password validation when changing password
+  '/',
   (req, res, next) => {
-    if (req.body.newPassword != null && req.body.newPasswordConfirm != null) {
+    const { role, newPassword, newPasswordConfirm } = req.body;
+    if (role === 'USER' && newPassword != null && newPasswordConfirm != null) {
       validatePasswordMatchMiddleware<UpdateUserInput>('newPassword', 'newPasswordConfirm')(
         req,
         res,

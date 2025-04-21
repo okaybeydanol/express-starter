@@ -1,8 +1,11 @@
+// Type Imports
+import type { Role } from '@prisma/client';
+
 /**
  * Type definitions for user update functionality
  * Ensures O(1) type checking throughout the update flow
  *
- * @module update-user.types
+ * @module update-user-by-id.types
  */
 
 /**
@@ -21,6 +24,8 @@ export type UpdateUserInput = {
   readonly newPasswordConfirm?: string;
   readonly firstName?: string | null;
   readonly lastName?: string | null;
+  readonly role: Role;
+  readonly isActive?: boolean;
 };
 
 /**
@@ -33,6 +38,7 @@ export type UpdateUserParams = {
   readonly password?: string;
   readonly firstName?: string | null;
   readonly lastName?: string | null;
+  readonly isActive?: boolean;
 };
 
 /**
@@ -49,6 +55,8 @@ export type UpdateUserByIdResponse = {
   readonly email: string;
   readonly firstName: string | null;
   readonly lastName: string | null;
+  readonly isActive: boolean;
+  readonly role: Role;
   readonly updatedAt: Date;
 };
 

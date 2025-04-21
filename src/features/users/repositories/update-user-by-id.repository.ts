@@ -39,6 +39,15 @@ export const updateUserByIdRepository = {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: userData,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isActive: true,
+        role: true,
+        updatedAt: true,
+      },
     });
 
     return updateUserByIdResponse(updatedUser);
