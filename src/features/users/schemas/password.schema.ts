@@ -4,9 +4,6 @@ import { z } from 'zod';
 // Parent Directory Imports
 import { PASSWORD_SCHEMA } from '../constant/create-user.constant.js';
 
-// Type Imports
-import type { PasswordHashing } from '../types/password.types.js';
-
 /**
  * Retrieves a set of commonly used passwords.
  *
@@ -79,29 +76,3 @@ export const passwordSchema = z
   .refine((password) => !commonPasswordsSet.has(password.toLowerCase().trim()), {
     message: 'Cannot use a common or easily guessable password',
   });
-
-export const validatePassword = (password: string): PasswordHashing => {
-  // Common password check with O(1) lookup using Set
-  const normalizedPassword = password.toLowerCase().trim();
-
-  if (normalizedPassword.length === 0) {
-    return {
-      success: false,
-      error: 'Password cannot be empty',
-    };
-  }
-
-  try {
-    // O(n) schema validation
-    const validatedPassword = passwordSchema.parse(password);
-    return { success: true, data: validatedPassword };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof z.ZodError
-          ? error.errors.map((e) => e.message).join(', ')
-          : 'Invalid password',
-    };
-  }
-};

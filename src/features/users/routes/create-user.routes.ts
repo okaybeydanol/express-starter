@@ -5,6 +5,9 @@ import { Router } from 'express';
 import { createUserController } from '../controllers/create-user.controller.js';
 import { validatePasswordMatchMiddleware } from '../middlewares/password-validation.middleware.js';
 
+// Type Imports
+import type { CreateUserInput } from '../types/create-user.types.js';
+
 /**
  * Defines the route configuration for user creation endpoints.
  *
@@ -27,7 +30,7 @@ const createUserRouter = Router();
 
 createUserRouter.post(
   '/',
-  validatePasswordMatchMiddleware('password', 'passwordConfirm'),
+  validatePasswordMatchMiddleware<CreateUserInput>('password', 'passwordConfirm'),
   createUserController.createUser
 );
 

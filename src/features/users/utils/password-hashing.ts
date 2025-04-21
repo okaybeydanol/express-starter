@@ -1,9 +1,6 @@
 // External Dependencies
 import bcrypt from 'bcrypt';
 
-// Parent Directory Imports
-import { validatePassword } from '../schemas/password.schema.js';
-
 // Type Imports
 import type { PasswordHashing } from '../types/password.types.js';
 
@@ -24,15 +21,6 @@ export const hashPassword = async (password: string): Promise<PasswordHashing> =
     return {
       success: false,
       error: 'Password cannot be empty',
-    };
-  }
-
-  // O(n) password validation
-  const validationResult = validatePassword(password);
-  if (!validationResult.success) {
-    return {
-      success: false,
-      error: validationResult.error,
     };
   }
 

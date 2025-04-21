@@ -9,7 +9,7 @@
  * @property createdAt - The date and time when the user was created.
  * @property updatedAt - The date and time when the user was last updated.
  */
-export type UserResponse = {
+export type GetUserByIdResponse = {
   readonly id: string;
   readonly email: string;
   readonly firstName: string | null;
@@ -27,4 +27,4 @@ export type UserResponse = {
  */
 export type GetUserByIdResult =
   | { readonly success: false; readonly error: string; readonly data?: never }
-  | { readonly success: true; readonly data: UserResponse; readonly error?: never };
+  | { readonly success: true; readonly data: GetUserByIdResponse; readonly error?: never };

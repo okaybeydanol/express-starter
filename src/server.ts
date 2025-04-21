@@ -9,6 +9,7 @@ import createUserRouter from '#features/users/routes/create-user.routes.js';
 import deleteUserByIdRouter from '#features/users/routes/delete-user-by-id.routes';
 import getAllUsersRouter from '#features/users/routes/get-all-users.routes.js';
 import getUserByIdRouter from '#features/users/routes/get-user-by-id.routes';
+import updateUserByIdRouter from '#features/users/routes/update-user-by-id.routes';
 
 // Type Imports
 import type { AppConfig } from '#types/route-types.js';
@@ -30,7 +31,13 @@ const main = async (): Promise<void> => {
   try {
     // Application configuration with routes
     const appConfig: AppConfig = {
-      routes: [getAllUsersRouter, createUserRouter, getUserByIdRouter, deleteUserByIdRouter],
+      routes: [
+        getAllUsersRouter,
+        createUserRouter,
+        getUserByIdRouter,
+        deleteUserByIdRouter,
+        updateUserByIdRouter,
+      ],
     };
 
     // Bootstrap application with config

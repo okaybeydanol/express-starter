@@ -8,12 +8,13 @@ import type { User } from '@prisma/client';
  * @param user - The `User` object to be transformed.
  * @returns A `UserResponse` object containing the user's details.
  */
-export const getAllUsersResponse = (user: User): UserResponse => ({
-  id: user.id,
-  email: user.email,
-  firstName: user.firstName,
-  lastName: user.lastName,
-  isActive: user.isActive,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
+export const getAllUsersResponse = (user: User): UserResponse =>
+  Object.freeze({
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    isActive: user.isActive,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  });

@@ -20,12 +20,3 @@ export type PasswordHashing =
       readonly error: string | undefined;
       readonly data?: never;
     };
-
-/**
- * Represents the possible fields related to passwords in a user context.
- *
- * - `currentPassword`: Refers to the user's existing password.
- * - `newPassword`: Refers to the user's desired new password.
- * - `password`: A generic password field, typically used for initial password setup.
- */
-export type PasswordField = 'currentPassword' | 'newPassword' | 'password';
