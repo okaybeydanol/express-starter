@@ -12,6 +12,7 @@ import { env } from '#config/env.js';
 import { startHealthMonitoring } from '#utils/monitoring/health-monitor.js';
 import log from '#utils/observability/logger.js';
 import createGracefulShutdown from '#utils/process/graceful-shutdown.js';
+import { setupTokenCleanupJob } from '#utils/setup-token-cleanup-job.utils';
 
 // Type Imports
 import type { AppConfig } from '#types/route-types.js';
@@ -58,9 +59,16 @@ export const bootstrap = async (config: AppConfig): Promise<() => void> => {
     // O(1) health monitoring setup with deterministic start/stop pattern
     const stopHealthMonitoring = startHealthMonitoring();
 
+    // O(1) token cleanup job setup with consistent function shape
+    const stopTokenCleanup = setupTokenCleanupJob();
+
     // O(1) signal handler registration with monomorphic function references
     // Using named function constants for V8 shape optimization
-    const shutdownFactory = createGracefulShutdown(server, stopHealthMonitoring);
+    const shutdownFactory = createGracefulShutdown(server, () => {
+      log.info('Graceful shutdown initiated');
+      stopHealthMonitoring();
+      stopTokenCleanup();
+    });
     const handleSigterm = shutdownFactory('SIGTERM');
     const handleSigint = shutdownFactory('SIGINT');
 
@@ -111,6 +119,7 @@ export const bootstrap = async (config: AppConfig): Promise<() => void> => {
     return (): void => {
       log.info('Programmatic shutdown initiated');
       stopHealthMonitoring();
+      stopTokenCleanup();
       server.close();
     };
   } catch (error) {

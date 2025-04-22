@@ -80,7 +80,7 @@ export const getAllUsersController = {
         log.error('Failed to fetch users', {
           requestId,
           error: result.error,
-          queryTime: collector.getMetric(),
+          queryTime,
         });
 
         // O(1) error response formatting
@@ -98,7 +98,7 @@ export const getAllUsersController = {
       log.info('Users fetched successfully', {
         requestId,
         count: result.data.length,
-        queryTime: collector.getMetric(),
+        queryTime,
       });
 
       // O(1) success response formatting

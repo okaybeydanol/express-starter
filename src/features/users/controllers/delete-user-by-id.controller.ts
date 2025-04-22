@@ -80,7 +80,7 @@ export const deleteUserByIdController = {
           requestId,
           userId: id,
           error: result.error,
-          queryTime: collector.getMetric(),
+          queryTime,
         });
 
         // O(1) error response formatting
@@ -98,7 +98,7 @@ export const deleteUserByIdController = {
       log.info('User deleted successfully', {
         requestId,
         userId: id,
-        queryTime: collector.getMetric(),
+        queryTime,
       });
 
       // O(1) success response formatting

@@ -69,7 +69,7 @@ export const createUserController = {
         log.error('User creation failed', {
           requestId,
           error: result.error,
-          queryTime: collector.getMetric(),
+          queryTime,
         });
 
         // O(1) error response formatting
@@ -86,7 +86,7 @@ export const createUserController = {
 
       log.info('User created successfully', {
         requestId,
-        queryTime: collector.getMetric(),
+        queryTime,
       });
 
       // O(1) success response formatting

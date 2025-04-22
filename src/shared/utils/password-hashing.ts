@@ -2,7 +2,7 @@
 import bcrypt from 'bcrypt';
 
 // Type Imports
-import type { PasswordHashing } from '../types/password.types.js';
+import type { PasswordHashing } from '#shared/types/password-hashing.types';
 
 /**
  * Hashes a given password using bcrypt and performs validation checks.

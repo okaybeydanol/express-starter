@@ -1,7 +1,9 @@
+// Shared Modules
+import { comparePassword, hashPassword } from '#shared/utils/password-hashing';
+
 // Parent Directory Imports
 import { updateUserByIdRepository } from '../repositories/update-user-by-id.repository.js';
 import { updateUserByIdSchema } from '../schemas/update-user-by-id.schema.js';
-import { comparePassword, hashPassword } from '../utils/password-hashing.js';
 
 // Type Imports
 import type {

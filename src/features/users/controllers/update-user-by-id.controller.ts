@@ -73,7 +73,7 @@ export const updateUserByIdController = {
           requestId,
           userId,
           error: result.error,
-          queryTime: collector.getMetric(),
+          queryTime,
         });
 
         // Determine appropriate status code based on error
@@ -99,7 +99,7 @@ export const updateUserByIdController = {
       log.info('User updated successfully', {
         requestId,
         userId,
-        queryTime: collector.getMetric(),
+        queryTime,
       });
 
       // O(1) success response formatting

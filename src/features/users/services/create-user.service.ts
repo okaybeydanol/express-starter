@@ -1,7 +1,9 @@
+// Shared Modules
+import { hashPassword } from '#shared/utils/password-hashing';
+
 // Parent Directory Imports
 import { createUserRepository } from '../repositories/create-user.repository.js';
 import { createUserSchema } from '../schemas/create-user-schema.js';
-import { hashPassword } from '../utils/password-hashing.js';
 
 // Type Imports
 import type { CreateUserInput, CreateUserResult } from '../types/create-user.types.js';

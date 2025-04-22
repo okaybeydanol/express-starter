@@ -79,7 +79,7 @@ export const getUserByIdController = {
           requestId,
           userId: id,
           error: result.error,
-          queryTime: collector.getMetric(),
+          queryTime,
         });
 
         // O(1) error response formatting
@@ -97,7 +97,7 @@ export const getUserByIdController = {
       log.info('User fetched successfully', {
         requestId,
         userId: id,
-        queryTime: collector.getMetric(),
+        queryTime,
       });
 
       // O(1) success response formatting

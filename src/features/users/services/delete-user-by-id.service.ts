@@ -43,9 +43,9 @@ export const deleteUserByIdService = {
       }
 
       // O(1) database operation to delete a specific user by ID
-      const deletedUser = await deleteUserByIdRepository.deleteById(isValidId.data.id);
+      const result = await deleteUserByIdRepository.deleteById(isValidId.data.id);
 
-      if (deletedUser == null) {
+      if (result.user === null) {
         return {
           success: false,
           error: 'User not found or could not be deleted',
@@ -55,7 +55,7 @@ export const deleteUserByIdService = {
       return {
         success: true,
         data: {
-          id: deletedUser.id,
+          id: result.user.id,
         },
       };
     } catch (error) {
