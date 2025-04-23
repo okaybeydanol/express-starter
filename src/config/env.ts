@@ -43,27 +43,33 @@ export const parseIntEnv = (value: string | undefined, defaultValue: number): nu
 };
 
 /**
- * Schema definition for environment variables using Zod.
- * This schema validates and provides default values for various
- * environment variables required by the application.
- *
+ * Schema definition for environment variables used in the application.
+ * This schema validates and provides default values for various configuration
+ * options required by the application.
  * Properties:
- * - `NODE_ENV`: Specifies the environment mode. Can be 'development', 'test', or 'production'. Defaults to 'development'.
+ * - `NODE_ENV`: Specifies the environment in which the application is running.
+ *   Must be one of 'development', 'test', or 'production'. Defaults to 'development'.
  * - `PORT`: The port number on which the application will run. Defaults to 3000.
- * - `DATABASE_URL`: The connection string for the database. This is required.
- * - `API_KEY`: The API key for external services. Must meet the minimum length defined by `NUMERIC_CONSTANTS.MIN_API_KEY_LENGTH`.
- * - `JWT_SECRET`: The secret key for signing JSON Web Tokens (JWT). Must meet the minimum length defined by `NUMERIC_CONSTANTS.MIN_JWT_SECRET_LENGTH`.
- * - `REDIS_URL`: The URL for the Redis server. Defaults to 'redis://localhost:6379'.
- * - `LOG_LEVEL`: The logging level for the application. Can be 'debug', 'info', 'warn', or 'error'. Defaults to 'info'.
- * - `JWT_EXPIRES_IN`: The expiration time for JWT tokens. Defaults to '7d'.
- * - `REFRESH_TOKEN_SECRET`: The secret key for signing refresh tokens. This is required.
- * - `REFRESH_TOKEN_EXPIRES_IN`: The expiration time for refresh tokens. Defaults to '30d'.
  * - `API_URL`: The base URL for the API. Defaults to 'http://localhost:3000'.
- * - `CORS_ORIGIN`: The allowed origin(s) for Cross-Origin Resource Sharing (CORS). Defaults to '*'.
- * - `LOG_FORMAT`: The format for logging. Can be 'combined', 'common', 'dev', 'short', or 'tiny'. Defaults to 'dev'.
- * - `RATE_LIMIT_WINDOW_MS`: The time window in milliseconds for rate limiting. Transformed using `parseIntEnv` and defaults to 900000 (15 minutes).
- * - `RATE_LIMIT_MAX`: The maximum number of requests allowed within the rate limit window. Transformed using `parseIntEnv` and defaults to 100.
- * - `VERSION`: The version of the application. Defaults to '1.0.0'.
+ * - `CORS_ORIGIN`: Specifies the allowed origins for CORS. Defaults to '*'.
+ * - `DATABASE_URL`: The connection string for the database. This is required.
+ * - `API_KEY`: The API key used for authentication. Must meet the minimum length
+ *   defined by `NUMERIC_CONSTANTS.MIN_API_KEY_LENGTH`.
+ * - `JWT_SECRET`: The secret key used for signing JSON Web Tokens (JWT). Must meet
+ *   the minimum length defined by `NUMERIC_CONSTANTS.MIN_JWT_SECRET_LENGTH`.
+ * - `JWT_EXPIRES_IN`: The expiration time for JWT tokens. Defaults to '15m'.
+ * - `REFRESH_TOKEN_SECRET`: The secret key used for signing refresh tokens. This is required.
+ * - `REFRESH_TOKEN_EXPIRES_IN`: The expiration time for refresh tokens. Defaults to '7d'.
+ * - `REDIS_URL`: The connection string for the Redis instance. Defaults to 'redis://localhost:6379'.
+ * - `LOG_LEVEL`: The logging level for the application. Must be one of 'debug', 'info',
+ *   'warn', or 'error'. Defaults to 'info'.
+ * - `LOG_FORMAT`: The format for log output. Must be one of 'combined', 'common',
+ *   'dev', 'short', or 'tiny'. Defaults to 'dev'.
+ * - `RATE_LIMIT_WINDOW_MS`: The time window in milliseconds for rate limiting.
+ *   Must meet the minimum value defined by `NUMERIC_CONSTANTS.MIN_RATE_LIMIT_WINDOW_MS`.
+ * - `RATE_LIMIT_MAX`: The maximum number of requests allowed within the rate limit window.
+ *   Must meet the value defined by `NUMERIC_CONSTANTS.RATE_LIMIT_MAX`. Defaults to 100.
+ * - `VERSION`: The version of the application. Defaults to '0.1.0'.
  */
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -71,16 +77,16 @@ const envSchema = z.object({
     .string()
     .transform((val) => Number.parseInt(val, 10))
     .default('3000'),
+  API_URL: z.string().default('http://localhost:3000'),
+  CORS_ORIGIN: z.string().default('*'),
   DATABASE_URL: z.string(),
   API_KEY: z.string().min(NUMERIC_CONSTANTS.MIN_API_KEY_LENGTH),
   JWT_SECRET: z.string().min(NUMERIC_CONSTANTS.MIN_JWT_SECRET_LENGTH),
-  REDIS_URL: z.string().default('redis://localhost:6379'), // Default value for V8 optimization
-  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_EXPIRES_IN: z.string().default('15m'),
   REFRESH_TOKEN_SECRET: z.string(),
-  REFRESH_TOKEN_EXPIRES_IN: z.string().default('30d'),
-  API_URL: z.string().default('http://localhost:3000'),
-  CORS_ORIGIN: z.string().default('*'),
+  REFRESH_TOKEN_EXPIRES_IN: z.string().default('7d'),
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   LOG_FORMAT: z.enum(['combined', 'common', 'dev', 'short', 'tiny']).default('dev'),
   RATE_LIMIT_WINDOW_MS: z
     .string()
@@ -90,7 +96,7 @@ const envSchema = z.object({
     .string()
     .transform((val) => parseIntEnv(val, NUMERIC_CONSTANTS.RATE_LIMIT_MAX))
     .default('100'),
-  VERSION: z.string().default('1.0.0'), // Default value for V8 hidden class stability
+  VERSION: z.string().default('0.1.0'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -151,16 +157,17 @@ const createEnvConfig = (): EnvKeys => {
     nodeEnv: validatedEnv.NODE_ENV,
     port: validatedEnv.PORT,
     apiUrl: validatedEnv.API_URL,
+    corsOrigin: validatedEnv.CORS_ORIGIN,
 
     isDevelopment: validatedEnv.NODE_ENV === 'development',
     isProduction: validatedEnv.NODE_ENV === 'production',
     isTest: validatedEnv.NODE_ENV === 'test',
 
-    corsOrigin: validatedEnv.CORS_ORIGIN,
-
     db: Object.freeze({
       url: validatedEnv.DATABASE_URL,
     }),
+
+    apiKey: validatedEnv.API_KEY,
 
     jwt: Object.freeze({
       secret: validatedEnv.JWT_SECRET,
@@ -168,6 +175,8 @@ const createEnvConfig = (): EnvKeys => {
       refreshSecret: validatedEnv.REFRESH_TOKEN_SECRET,
       refreshExpiresIn: validatedEnv.REFRESH_TOKEN_EXPIRES_IN,
     }),
+
+    redisUrl: validatedEnv.REDIS_URL,
 
     logging: Object.freeze({
       level: validatedEnv.LOG_LEVEL as 'debug' | 'error' | 'http' | 'info' | 'warn',
@@ -178,6 +187,7 @@ const createEnvConfig = (): EnvKeys => {
       windowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
       max: validatedEnv.RATE_LIMIT_MAX,
     }),
+
     version: validatedEnv.VERSION,
   });
 

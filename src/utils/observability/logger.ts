@@ -2,8 +2,10 @@
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
+// Configuration
+import { env } from '#config/env';
+
 // Constants
-import { DEFAULT_LOG_LEVEL } from '#constants/default-app-config.js';
 import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
 
 // Type Imports
@@ -99,7 +101,7 @@ const createFileTransport = (level: Readonly<string>): DailyRotateFile =>
   });
 
 export const logger = createLogger({
-  level: DEFAULT_LOG_LEVEL, // varsayılan seviye kullandık
+  level: env.logging.level,
   defaultMeta: { service: 'express-api' },
   format: format.combine(format.errors({ stack: true }), format.metadata()),
   transports: [

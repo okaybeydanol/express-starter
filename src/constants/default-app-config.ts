@@ -11,5 +11,3 @@ import type { AppConfig } from '#types/route-types.js';
 export const DEFAULT_APP_CONFIG: AppConfig = {
   routes: [],
 } as const;
-
-export const DEFAULT_LOG_LEVEL = 'info';
