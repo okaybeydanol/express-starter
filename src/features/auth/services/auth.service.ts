@@ -1,3 +1,6 @@
+// External Dependencies
+import z from 'zod';
+
 // Shared Modules
 import { comparePassword } from '#shared/utils/password-hashing';
 
@@ -56,9 +59,18 @@ export const loginService = {
       const validationResult = loginSchema.safeParse(credentials);
 
       if (!validationResult.success) {
+        // Deprecated olan format() yerine z.treeifyError kullanımı
+        const errorTree = z.treeifyError(validationResult.error);
+
+        // Convert the formatted error to a string representation
+        const formattedError = JSON.stringify(errorTree)
+          .replaceAll(/["{}]/g, '')
+          .replaceAll(':', ': ')
+          .replaceAll(',', ', ');
+
         return {
           success: false,
-          error: validationResult.error.errors.map((e) => e.message).join(', '),
+          error: `Validation failed: ${formattedError}`,
         };
       }
 

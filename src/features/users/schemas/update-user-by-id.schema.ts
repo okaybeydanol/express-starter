@@ -36,17 +36,16 @@ export const updateUserByIdSchema = z
     // ADMIN role schema - O(1) branching için ayrı schema
     z.object({
       id: z
-        .string({
-          required_error: 'User ID is required',
-          invalid_type_error: 'User ID must be a string',
-        })
-        .uuid({
-          message: 'Invalid UUID format for user ID',
-        }),
+        .any()
+        .refine((val) => val !== undefined, { message: 'User ID is required' })
+        .refine((val) => typeof val === 'string', { message: 'User ID must be a string' })
+        .pipe(z.uuid({ message: 'Invalid UUID format for user ID' })),
       role: z.literal('ADMIN'),
       isActive: z.boolean({
-        required_error: 'Active status is required',
-        invalid_type_error: 'Active status must be a boolean',
+        error: (issue) =>
+          issue.input === undefined
+            ? 'Active status is required'
+            : 'Active status must be a boolean',
       }),
       currentPassword: z.string().optional(),
       newPassword: z.never().optional(),
@@ -57,23 +56,22 @@ export const updateUserByIdSchema = z
 
     z.object({
       id: z
-        .string({
-          required_error: 'User ID is required',
-          invalid_type_error: 'User ID must be a string',
-        })
-        .uuid({
-          message: 'Invalid UUID format for user ID',
-        }),
+        .any()
+        .refine((val) => val !== undefined, { message: 'User ID is required' })
+        .refine((val) => typeof val === 'string', { message: 'User ID must be a string' })
+        .pipe(z.uuid({ message: 'Invalid UUID format for user ID' })),
       role: z.literal('USER'),
       currentPassword: z.string({
-        required_error: 'Current password is required for user updates',
-        invalid_type_error: 'Current password must be a string',
+        error: (issue) =>
+          issue.input === undefined
+            ? 'Current password is required for user updates'
+            : 'Current password must be a string',
       }),
       newPassword: passwordSchema.optional(),
       newPasswordConfirm: z.string().optional(),
       firstName: z
         .string({
-          invalid_type_error: 'First name must be a string',
+          error: () => 'First name must be a string',
         })
         .min(2, {
           message: 'First name must be at least 2 characters long',
@@ -86,7 +84,7 @@ export const updateUserByIdSchema = z
         .optional(),
       lastName: z
         .string({
-          invalid_type_error: 'Last name must be a string',
+          error: () => 'Last name must be a string',
         })
         .min(2, {
           message: 'Last name must be at least 2 characters long',

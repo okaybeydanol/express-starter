@@ -42,18 +42,20 @@ import { passwordSchema } from './password.schema.js';
 export const createUserSchema = z.object({
   email: z
     .string({
-      required_error: 'Email address is required',
-      invalid_type_error: 'Email must be a string',
-    })
-    .email({
-      message: 'Invalid email format',
+      error: (issue) =>
+        issue.input === undefined ? 'Email address is required' : 'Email must be a string',
     })
     .trim()
-    .toLowerCase(),
+    .toLowerCase()
+    .pipe(
+      z.email({
+        message: 'Invalid email format',
+      })
+    ),
   password: passwordSchema,
   firstName: z
     .string({
-      invalid_type_error: 'First name must be a string',
+      error: () => 'First name must be a string',
     })
     .min(2, {
       message: 'First name must be at least 2 characters long',
@@ -66,7 +68,7 @@ export const createUserSchema = z.object({
     .optional(),
   lastName: z
     .string({
-      invalid_type_error: 'Last name must be a string',
+      error: () => 'Last name must be a string',
     })
     .min(2, {
       message: 'Last name must be at least 2 characters long',

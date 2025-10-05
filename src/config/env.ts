@@ -9,10 +9,14 @@ import { z } from 'zod';
 import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
 
 // Utilities
-import log from '#utils/observability/logger';
+import { configureLogger } from '#utils/observability/logger.js';
 
 // Type Imports
 import type { EnvKeys } from '#types/env';
+
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
+// Import logger last to avoid circular dependency issues
 
 /* eslint-disable no-process-env */
 /* eslint-disable no-restricted-globals */
@@ -76,7 +80,7 @@ const envSchema = z.object({
   PORT: z
     .string()
     .transform((val) => Number.parseInt(val, 10))
-    .default('3000'),
+    .default(3000),
   API_URL: z.string().default('http://localhost:3000'),
   CORS_ORIGIN: z.string().default('*'),
   DATABASE_URL: z.string(),
@@ -91,11 +95,11 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z
     .string()
     .transform((val) => parseIntEnv(val, NUMERIC_CONSTANTS.MIN_RATE_LIMIT_WINDOW_MS))
-    .default('900000'),
+    .default(900000),
   RATE_LIMIT_MAX: z
     .string()
     .transform((val) => parseIntEnv(val, NUMERIC_CONSTANTS.RATE_LIMIT_MAX))
-    .default('100'),
+    .default(100),
   VERSION: z.string().default('0.1.0'),
 });
 
@@ -114,15 +118,11 @@ const validateEnv = (): Env => {
     return envSchema.parse(environmentVariables);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const messages = error.errors
-        .map((e: z.ZodIssue) => {
-          const issue = e as z.ZodIssue;
-          const pathStr = Array.isArray(issue.path) ? issue.path.join('.') : String(issue.path);
-
-          const msg =
-            typeof issue.message === 'string' ? issue.message : 'Unknown validation error';
-
-          return `${pathStr}: ${msg}`;
+      const messages = error.issues
+        .map((issue) => {
+          // Use the proper Zod issue type without explicit casting
+          const pathStr = issue.path.length > 0 ? issue.path.join('.') : 'unknown';
+          return `${pathStr}: ${issue.message}`;
         })
         .join('\n');
       throw new Error(`Environment validation failed:\n${messages}`);
@@ -194,18 +194,34 @@ const createEnvConfig = (): EnvKeys => {
   return memoizedEnv;
 };
 
+/**
+ * Simple utility to format error objects as strings.
+ * This pure function extracts the message from Error objects or converts
+ * non-Error values to strings.
+ *
+ * @param err - Any error value to be formatted
+ * @returns A string representation of the error
+ */
+const formatError = (err: unknown): string => (err instanceof Error ? err.message : String(err));
+
 // Immediate validation at module load time for early failure
 // This provides fast feedback during development and prevents
 // silent failures in production
+let hasValidatedEnv = false;
+
 try {
   validateEnv();
-  // Log success only in development to avoid cluttering production logs
-  if (environmentVariables.NODE_ENV === 'development') {
-    log.info('✅ Environment variables validated successfully');
-  }
+  hasValidatedEnv = true;
 } catch (error) {
-  log.error('❌ Environment validation failed:');
-  log.error(error instanceof Error ? error.message : String(error));
+  // Create a basic failsafe logger that doesn't depend on the full logger
+  const failsafeLog = {
+    error: (message: string, details?: unknown): void => {
+      process.stderr.write(`❌ ${message}\n`);
+      if (details != null) process.stderr.write(`${formatError(details)}\n`);
+    },
+  };
+
+  failsafeLog.error('Environment validation failed:', error);
 
   // Only exit in production to allow development with missing vars
   if (environmentVariables.NODE_ENV === 'production') {
@@ -222,3 +238,36 @@ try {
  * @constant
  */
 export const env = createEnvConfig();
+
+/**
+ * Configures the logger and logs successful environment validation in development.
+ * This approach avoids circular dependencies by using dynamic imports.
+ *
+ * @param config - The environment configuration to use for logger setup
+ * @returns A promise that resolves when the logger is configured
+ */
+const configureLoggerWithEnv = async (config: EnvKeys): Promise<void> => {
+  // Configure the logger with environment settings
+  configureLogger({
+    level: config.logging.level,
+    format: config.logging.format,
+  });
+
+  // Log success only in development to avoid cluttering production logs
+  if (config.isDevelopment && hasValidatedEnv) {
+    try {
+      // Dynamic import to avoid circular dependency
+      const logModule = await import('#utils/observability/logger.js');
+      logModule.default.info('✅ Environment variables validated successfully');
+    } catch {
+      // Silently handle import errors without disrupting startup
+    }
+  }
+};
+
+// Schedule logger configuration in next event loop tick to ensure module initialization completes
+// Using setTimeout with 0ms delay ensures we're at the end of the current execution cycle
+setTimeout(() => {
+  // void operator explicitly indicates we're intentionally ignoring the promise result
+  void configureLoggerWithEnv(env);
+}, 0);

@@ -3,13 +3,10 @@ import { z } from 'zod';
 
 export const getUserByIdSchema = z.object({
   id: z
-    .string({
-      required_error: 'User ID is required',
-      invalid_type_error: 'User ID must be a string',
-    })
-    .uuid({
-      message: 'Invalid UUID format for user ID',
-    }),
+    .any()
+    .refine((val) => val !== undefined, { message: 'User ID is required' })
+    .refine((val) => typeof val === 'string', { message: 'User ID must be a string' })
+    .pipe(z.uuid({ message: 'Invalid UUID format for user ID' })),
 });
 
 // Type inference from the schema for compile-time safety

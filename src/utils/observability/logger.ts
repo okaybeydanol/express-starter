@@ -2,9 +2,6 @@
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-// Configuration
-import { env } from '#config/env';
-
 // Constants
 import { NUMERIC_CONSTANTS } from '#constants/numeric.js';
 
@@ -18,6 +15,9 @@ import type {
   TransformableInfo,
   WithLoggingOptions,
 } from '#types/with-logging-types.js';
+
+// Default log settings until configuration is applied
+const DEFAULT_LOG_LEVEL = 'development';
 
 /**
  * Creates a log formatter for use with a logging library.
@@ -39,7 +39,6 @@ import type {
  * @returns {Format} A Winston-compatible log formatter.
  */
 const createLogFormatter = (): Format =>
-  // Mevcut kodun aynısı...
   format.printf((info: Readonly<TransformableInfo>) => {
     // Ensure consistent property access patterns for V8 monomorphic optimization
     const timestamp = typeof info.timestamp === 'string' ? info.timestamp : '';
@@ -63,6 +62,7 @@ const createLogFormatter = (): Format =>
     // String concatenation instead of template literals - better V8 optimization for hot paths
     return '[' + timestamp + '] ' + level + ': ' + message + metaString;
   });
+
 /**
  * Custom format for console output with colors and structured data
  */
@@ -101,7 +101,7 @@ const createFileTransport = (level: Readonly<string>): DailyRotateFile =>
   });
 
 export const logger = createLogger({
-  level: env.logging.level,
+  level: DEFAULT_LOG_LEVEL, // Initialize with default log level
   defaultMeta: { service: 'express-api' },
   format: format.combine(format.errors({ stack: true }), format.metadata()),
   transports: [
@@ -135,7 +135,7 @@ export const configureLogger = (config: {
 
   logger.transports.forEach((transport) => {
     if (transport instanceof transports.Console) {
-      // Yeni format ayarı
+      // New format setting
       const newFormat = format.combine(
         format.colorize(),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -207,19 +207,6 @@ export const log = {
  * @returns A new function that wraps the original function with logging behavior.
  *
  * @throws Any error thrown by the wrapped function will be logged and re-thrown.
- *
- * @example
- * ```typescript
- * const add = (input: { a: number, b: number }) => input.a + input.b;
- * const loggedAdd = withLogging(add, {
- *   name: 'add',
- *   logArgs: true,
- *   logResult: true,
- *   redactFields: ['b'],
- * });
- *
- * loggedAdd({ a: 1, b: 2 });
- * ```
  */
 export const withLogging =
   <T, R>(
@@ -345,12 +332,6 @@ const logLevelSuccessHandler = (
  * @param logLevel - The severity level of the log. Determines which log method to invoke.
  * @param name - The name or identifier of the context or function being logged.
  * @param logParams - Additional parameters or metadata to include in the log entry.
- *
- * @remarks
- * This function uses a switch statement to handle different log levels such as 'debug', 'http',
- * 'info', 'warn', and 'error'. If an unsupported log level is provided, it defaults to using
- * the 'debug' log level. TypeScript's exhaustive checking ensures that all possible log levels
- * are handled during compilation.
  */
 const logLevelHandler = (logLevel: LogLevel, name: string, logParams: LogParams): void => {
   switch (logLevel) {
@@ -370,7 +351,7 @@ const logLevelHandler = (logLevel: LogLevel, name: string, logParams: LogParams)
       log.error(`➡️ Entering ${name}`, logParams);
       break;
     default:
-      // TypeScript exhaustive checking - will cause compile error if a case is missed
+      // TypeScript exhaustive checking
       log.debug(`➡️ Entering ${name}`, logParams);
   }
 };

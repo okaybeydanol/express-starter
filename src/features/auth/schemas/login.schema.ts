@@ -21,17 +21,19 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   email: z
     .string({
-      required_error: 'Email address is required',
-      invalid_type_error: 'Email must be a string',
-    })
-    .email({
-      message: 'Invalid email format',
+      error: (issue) =>
+        issue.input === undefined ? 'Email address is required' : 'Email must be a string',
     })
     .trim()
-    .toLowerCase(),
+    .toLowerCase()
+    .pipe(
+      z.email({
+        message: 'Invalid email format',
+      })
+    ),
   password: z.string({
-    required_error: 'Password is required',
-    invalid_type_error: 'Password must be a string',
+    error: (issue) =>
+      issue.input === undefined ? 'Password is required' : 'Password must be a string',
   }),
 });
 

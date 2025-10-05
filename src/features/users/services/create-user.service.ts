@@ -7,6 +7,7 @@ import { createUserSchema } from '../schemas/create-user-schema.js';
 
 // Type Imports
 import type { CreateUserInput, CreateUserResult } from '../types/create-user.types.js';
+import type z from 'zod';
 
 /**
  * Service for creating a new user in the system.
@@ -54,9 +55,13 @@ export const createUserService = {
       const validationResult = createUserSchema.safeParse(userData);
 
       if (!validationResult.success) {
+        // Type-safe error formatting
+        const formatValidationErrors = (error: z.ZodError): string =>
+          error.issues.map((issue) => issue.message).join(', ');
+
         return {
           success: false,
-          error: validationResult.error.errors.map((e) => e.message).join(', '),
+          error: formatValidationErrors(validationResult.error),
         };
       }
 

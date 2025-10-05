@@ -11,6 +11,7 @@ import type {
   UpdateUserInput,
   UpdateUserParams,
 } from '../types/update-user-by-id.types.js';
+import type z from 'zod';
 
 /**
  * Service for updating an existing user in the system.
@@ -108,9 +109,13 @@ const processAdminUpdate = async (
   });
 
   if (!validationResult.success) {
+    // Type-safe error formatting
+    const formatValidationErrors = (error: z.ZodError): string =>
+      error.issues.map((issue) => issue.message).join(', ');
+
     return {
       success: false,
-      error: validationResult.error.errors.map((e) => e.message).join(', '),
+      error: formatValidationErrors(validationResult.error),
     };
   }
 
@@ -175,9 +180,13 @@ const processUserUpdate = async (
   const validationResult = updateUserByIdSchema.safeParse(userData);
 
   if (!validationResult.success) {
+    // Type-safe error formatting
+    const formatValidationErrors = (error: z.ZodError): string =>
+      error.issues.map((issue) => issue.message).join(', ');
+
     return {
       success: false,
-      error: validationResult.error.errors.map((e) => e.message).join(', '),
+      error: formatValidationErrors(validationResult.error),
     };
   }
 

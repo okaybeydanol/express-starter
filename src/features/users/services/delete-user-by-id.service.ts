@@ -4,6 +4,7 @@ import { deleteUserByIdSchema } from '../schemas/delete-user-by-id.schema.js';
 
 // Type Imports
 import type { DeleteUserByIdResult } from '../types/delete-user-by-id.types.js';
+import type z from 'zod';
 
 /**
  * Service object for deleting a user by ID.
@@ -36,9 +37,13 @@ export const deleteUserByIdService = {
       const isValidId = deleteUserByIdSchema.safeParse({ id });
 
       if (!isValidId.success) {
+        // Type-safe error formatting
+        const formatValidationErrors = (error: z.ZodError): string =>
+          error.issues.map((issue) => issue.message).join(', ');
+
         return {
           success: false,
-          error: isValidId.error.errors.map((e) => e.message).join(', '),
+          error: formatValidationErrors(isValidId.error),
         };
       }
 
